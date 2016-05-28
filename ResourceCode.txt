@@ -247,4 +247,202 @@ public:
 };
  
  
+//图书库类，实现对图书的维护，查找，删除等
+class BDatabase
+{
+private:
+    int top;         //图书记录指针
+ Book book[Maxb]; //图书记录
+public:
+ BDatabase()//构造函数，将book.txt读到book[]中
+ { 
+   Book b;
+   top=-1;
+   fstream file("book.txt",ios::in);
+   while (1)
+   {
+    file.read((char *)&b,sizeof(b));
+    if (!file) break;
+    top++;
+    book[top]=b;
+   }
+   file.close();
+ }
+    void clear()//全删
+ {
+  top=-1;
+ }
+    int addbook(int n,char *na)//增加图书
+ {
+  Book *p=query(n);
+  if (NULL==p)
+  {
+   top++;
+   book[top].addbook(n,na);
+   return 1;
+  }
+  return 0;
+ }
+ Book *query(int bookid)//查找图书
+ {
+  for (int i=0;i<=top;i++)
+   if (book[i].getno()==bookid &&book[i].gettag()==0)
+   { 
+    return &book[i];
+   }
+   return NULL;
+ }
+ void bookdata();//图书库维护
+ void disp()
+ {
+   for (int i=0;i<=top;i++)
+    if (book[i].gettag()==0)
+     book[i].disp();
+ }
+ ~BDatabase()//析构函数，将book[]写到book.txt文件中
+ {
+  fstream file("book.txt",ios::out);
+        for (int i=0;i<=top;i++)
+   if (book[i].gettag()==0)
+    file.write((char *)&book[i],sizeof(book[i]));
+   file.close();
+ }
+};
+void BDatabase::bookdata()
+{
+    char choice;
+ char bname[40];
+ int bookid;
+ Book *b;
+ while (choice!='0')
+ {
+  cout <<"\n\n\n\t\t\t图  书  维  护 "<<endl<<endl;
+  cout<<"\t\t1   新     增\n \t\t2   更     改\n\t\t3   删     除\n\t\t4   查     找\n\t\t5   显     示\n\t\t6   全     删\n\t\t0   退     出"<<endl;
+  cin >> choice;
+  switch (choice)
+  {
+            case '1':
+    cout << "输入图书编号:"<<endl;
+    cin >> bookid;
+                cout << "输入图书书名:"<<endl;
+    cin >> bname;
+    addbook(bookid,bname);
+    break;
+            case '2':
+    cout << "输入图书编号:"<<endl;
+    cin >> bookid;
+    b=query(bookid);
+    if (b==NULL)
+    {
+     cout << " 该图书不存在  "<<endl;
+        break;
+    }
+    cout << "输入新的书名:"<<endl;
+    cin >> bname;
+    b->setname(bname);
+     break;
+            case '3':
+        cout <<" 读入图书编号:"<<endl;
+                    cin >> bookid;
+     b=query(bookid);
+     if (b==NULL)
+     {
+         cout <<" 该图书不存在" << endl;
+         break;
+     }
+     b->delbook();
+     break;
+   case '4':
+    cout << "  读入图书编号:"<<endl;
+    cin >> bookid;
+    b=query(bookid);
+    if (b==NULL)
+    {
+     cout <<"  该图书不存在"<< endl;
+     break;
+    }
+    b->disp();
+    break;
+   case '5':
+    disp();
+    break;
+   case '6':
+    clear();
+    break;
+   default:cout<<"输入错误，请从新输入:";
+  }
+ }
+}
+ 
+//main() 函数的实现，程序的主界面的引导
+void main()
+{    
+ char choice;
+ int bookid,readerid;
+ RDatabase ReaderDB;
+ Reader *r;
+ BDatabase BookDB;
+ Book *b;
+ while(choice!='0')
+ {       
+   cout <<endl<<endl<<"\t\t\t中 北 大 学 图 书 管 理 系 统\n\n\n";
+      
+   cout <<"\t\t\t1    借       书\n\n\t\t\t2    还       书 \n\n\t\t\t3    图 书 维 护\n\n\t\t\t4    读 者 维 护\n\n\t\t\t0    离       开"<<endl;
+   cin >> choice;
+   switch (choice)
+   {
+   case '1':
+    cout <<"  借书 读者编号:";
+    cin >>readerid;
+    cout <<"  图书编号： ";
+    cin >>bookid;
+    r=ReaderDB.query(readerid);//按编号查找
+    if (NULL==r)
+    {
+     cout <<"  不存在该读者，不能借书"<< endl;
+     break;
+    }
+    b=BookDB.query(bookid);
+    if (b==NULL)
+    {
+     cout <<"  不存在该图书，不能借书"<< endl;
+     break;
+    }
+    if (b->zfrowbook()==0)
+    {
+     cout << "  该图书已借出，不能借书"<< endl;
+     break;
+    }
+    r->zfrowbook(b->getno());
+    break;
+   case '2':
+    cout<<"还书\n 读者编号:";
+    cin >>readerid;
+    cout << "   图书编号:";
+    cin >>bookid;
+    r=ReaderDB.query(readerid);
+    if (r==NULL)
+    {
+     cout <<" 不存在该读者，不能还书" << endl;
+     break;
+    }
+    b=BookDB.query(bookid);
+    if (b==NULL)
+    {
+     cout <<"  不存在该图书，不能还书" <<endl;
+     break;
+    }
+    b->retbook();
+    r->retbook(b->getno());
+    break;
+   case '3':
+     BookDB.bookdata();
+     break;
+   case '4':
+        ReaderDB.readerdata();
+        break;
+   default:cout<<"输入错误，请从新输入：";
+   }
+ }
+}
 
